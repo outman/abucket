@@ -12,6 +12,6 @@ type Layer struct {
 }
 
 // TableName db table name
-func (e *Layer) TableName() string {
+func (l *Layer) TableName() string {
 	return "abucket_layer"
 }
