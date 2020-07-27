@@ -24,6 +24,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/outman/abucket/internal/api"
+	"github.com/spf13/viper"
 )
 
 type route struct{}
@@ -37,6 +38,7 @@ func (r *route) Register() *gin.Engine {
 	e := api.NewActionExperiment()
 	l := api.NewActionLayer()
 
+	gin.SetMode(viper.GetString("GIN_MODE"))
 	router := gin.Default()
 	v1 := router.Group("/api/v1")
 	{

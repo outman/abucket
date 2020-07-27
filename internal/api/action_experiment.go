@@ -21,7 +21,13 @@ THE SOFTWARE.
 */
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/outman/abucket/internal/form"
+	"github.com/outman/abucket/internal/service"
+)
 
 // actionExperiment struct
 type actionExperiment struct {
@@ -35,8 +41,23 @@ func (a *actionExperiment) Create(c *gin.Context) {
 
 }
 
+// Index 获取所有实验
 func (a *actionExperiment) Index(c *gin.Context) {
-
+	var query form.FormSearchExperiment
+	if err := c.ShouldBindQuery(&query); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": PARAMETER_ERROR,
+			"text": err.Error(),
+		})
+		return
+	}
+	s := service.NewExperimentService()
+	data := s.Index(&query)
+	c.JSON(http.StatusOK, gin.H{
+		"code": SUCCESS,
+		"data": data,
+	})
+	return
 }
 
 func (a *actionExperiment) Update(c *gin.Context) {

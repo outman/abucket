@@ -21,14 +21,26 @@ THE SOFTWARE.
 */
 package service
 
-import "github.com/outman/abucket/internal/form"
+import (
+	"github.com/outman/abucket/internal/form"
+	"github.com/outman/abucket/internal/model"
+	"github.com/outman/abucket/internal/pkg"
+)
 
 type serviceExperiment struct{}
 
+// NewExperimentService 初始化一个 Sevice
 func NewExperimentService() *serviceExperiment {
 	return &serviceExperiment{}
 }
 
-func (s *serviceExperiment) IndexExperiment(f *form.FormSearchExperiment) {
-
+// Index 根据条件获取数据
+func (s *serviceExperiment) Index(f *form.FormSearchExperiment) []model.Experiment {
+	var experiments []model.Experiment
+	if f.CurrentStatus > 0 {
+		pkg.NewMySQL().DB.Where("current_status = ?", f.CurrentStatus).Order("end_time desc").Find(&experiments)
+	} else {
+		pkg.NewMySQL().DB.Order("end_time desc").Find(&experiments)
+	}
+	return experiments
 }
