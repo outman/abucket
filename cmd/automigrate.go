@@ -22,22 +22,24 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"github.com/outman/abucket/internal/routes"
+	"github.com/outman/abucket/internal/model"
+	"github.com/outman/abucket/internal/pkg"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-// serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Run application.",
-	Long:  "Run application as http server.",
+// automigrateCmd represents the automigrate command
+var automigrateCmd = &cobra.Command{
+	Use:   "automigrate",
+	Short: "Auto migrate database tables.",
+	Long: `AutoMigrate will ONLY create tables, 
+			missing columns and missing indexes, 
+			and WON’T change existing column’s type 
+			or delete unused columns to protect your data.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		router := routes.NewRoute().Register()
-		router.Run(viper.GetString("SERVER_LISTEN"))
+		pkg.NewMySQL().DB.AutoMigrate(&model.Experiment{}, &model.Layer{})
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(automigrateCmd)
 }

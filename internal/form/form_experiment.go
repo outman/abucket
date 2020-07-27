@@ -19,25 +19,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package form
 
-import (
-	"github.com/outman/abucket/internal/routes"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
-
-// serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Run application.",
-	Long:  "Run application as http server.",
-	Run: func(cmd *cobra.Command, args []string) {
-		router := routes.NewRoute().Register()
-		router.Run(viper.GetString("SERVER_LISTEN"))
-	},
+type FormSearchExperiment struct {
+	CurrentStatus uint `form:"status"`
 }
 
-func init() {
-	rootCmd.AddCommand(serverCmd)
+type FormCreateExperiment struct {
 }

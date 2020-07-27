@@ -19,25 +19,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package routes
 
 import (
-	"github.com/outman/abucket/internal/routes"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/gin-gonic/gin"
+	"github.com/outman/abucket/internal/api"
 )
 
-// serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Run application.",
-	Long:  "Run application as http server.",
-	Run: func(cmd *cobra.Command, args []string) {
-		router := routes.NewRoute().Register()
-		router.Run(viper.GetString("SERVER_LISTEN"))
-	},
+type route struct{}
+
+func NewRoute() *route {
+	return &route{}
 }
 
-func init() {
-	rootCmd.AddCommand(serverCmd)
+func (r *route) Register() *gin.Engine {
+
+	e := api.NewActionExperiment()
+	l := api.NewActionLayer()
+
+	router := gin.Default()
+	v1 := router.Group("/api/v1")
+	{
+		v1.GET("/experiment/index", e.Index)
+		v1.POST("/experiment/create", e.Create)
+		v1.POST("/experiment/update", e.Update)
+		v1.POST("/experiment/delete", e.Delete)
+		v1.POST("/experiment/group/create", e.CreateGroup)
+		v1.POST("/experiment/group/update", e.UpdateGroup)
+		v1.GET("/layer/index", l.Index)
+		v1.POST("/layer/update", l.Update)
+		v1.POST("/layer/create", l.Create)
+	}
+	return router
 }

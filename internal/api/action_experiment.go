@@ -19,25 +19,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package api
 
-import (
-	"github.com/outman/abucket/internal/routes"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
+import "github.com/gin-gonic/gin"
 
-// serverCmd represents the server command
-var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Run application.",
-	Long:  "Run application as http server.",
-	Run: func(cmd *cobra.Command, args []string) {
-		router := routes.NewRoute().Register()
-		router.Run(viper.GetString("SERVER_LISTEN"))
-	},
+// actionExperiment struct
+type actionExperiment struct {
 }
 
-func init() {
-	rootCmd.AddCommand(serverCmd)
+func NewActionExperiment() *actionExperiment {
+	return &actionExperiment{}
+}
+
+func (a *actionExperiment) Create(c *gin.Context) {
+
+}
+
+func (a *actionExperiment) Index(c *gin.Context) {
+
+}
+
+func (a *actionExperiment) Update(c *gin.Context) {
+
+}
+
+func (a *actionExperiment) Delete(c *gin.Context) {
+
+}
+
+func (a *actionExperiment) CreateGroup(c *gin.Context) {
+
+}
+
+func (a *actionExperiment) UpdateGroup(c *gin.Context) {
+
 }
