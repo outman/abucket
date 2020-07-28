@@ -1,7 +1,7 @@
 package api
 
 const (
-	SUCCESS         = 200
-	PARAMETER_ERROR = 400
-	SERVER_ERROR    = 500
+	actionSuccess        = 200
+	actionParameterError = 400
+	actionServerError    = 500
 )

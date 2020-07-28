@@ -1,3 +1,5 @@
+package pkg
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package pkg
 
 import (
 	_ "github.com/go-sql-driver/mysql"
@@ -38,6 +39,7 @@ type mySQL struct {
 
 var mySQLdb *mySQL
 
+// NewMySQL init mySQL
 func NewMySQL() *mySQL {
 
 	if mySQLdb != nil && mySQLdb.IsOpen {
@@ -49,6 +51,7 @@ func NewMySQL() *mySQL {
 		panic(fmt.Sprintf("MySQL open connection %s error %s.", viper.GetString("DB_CONNECTION"), err))
 	}
 
+	database.LogMode(true)
 	database.Set("gorm:table_options", "ENGINE=InnoDB")
 	database.DB().SetMaxIdleConns(viper.GetInt("MYSQL_MAX_IDLE"))
 	database.DB().SetMaxOpenConns(viper.GetInt("MYSQL_MAX_OPEN_CONNS"))

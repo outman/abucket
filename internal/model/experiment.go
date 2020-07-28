@@ -1,3 +1,5 @@
+package model
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package model
 
 import (
 	"time"
@@ -30,11 +31,12 @@ import (
 // Experiment struct
 type Experiment struct {
 	ID            uint      `gorm:"Column:id;PRIMARY_KEY"`
-	Name          string    `gorm:"Column:name;UNIQUE_INDEX:uniq_name;NOT NULL;Size:200"`
+	Name          string    `gorm:"Column:name;UNIQUE_INDEX:uniq_name;NOT NULL;Size:150"`
+	UniqKey       string    `gorm:"Column:uniq_key;UNIQUE_INDEX:uniq_key;NOT NULL;Size:40"`
 	LayerID       uint      `gorm:"Column:layer_id;NOT NULL;default:0;Index:idx_layer_id"`
 	LayerUsed     uint      `gorm:"Column:layer_used;NOT NULL;default:0"`
 	Groups        string    `gorm:"Column:groups;Type:longtext"`
-	CurrentStatus uint      `gorm:"Column:current_status;DEFAULT:0"`
+	CurrentStatus uint      `gorm:"Column:current_status;NOT NULL;DEFAULT:0"`
 	BeginTime     time.Time `gorm:"Column:begin_time"`
 	EndTime       time.Time `gorm:"Column:end_time"`
 	CreatedAt     time.Time `gorm:"Column:created_at"`
@@ -46,6 +48,7 @@ func (e *Experiment) TableName() string {
 	return "abucket_experiment"
 }
 
+// Index find all elements.
 func (e *Experiment) Index() []Experiment {
 	var experiments []Experiment
 	pkg.NewMySQL().DB.Find(&experiments)

@@ -1,3 +1,5 @@
+package api
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package api
 
 import (
 	"net/http"
@@ -38,15 +39,38 @@ func NewActionExperiment() *actionExperiment {
 }
 
 func (a *actionExperiment) Create(c *gin.Context) {
+	var formParams form.FormCreateExperiment
+	if err := c.ShouldBind(&formParams); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
+			"text": err.Error(),
+		})
+		return
+	}
 
+	s := service.NewExperimentService()
+	code, data := s.Create(&formParams)
+	if code == service.ServiceOptionSuccess {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionSuccess,
+			"data": data,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": actionParameterError,
+		"text": service.CodeMessage(code),
+	})
+	return
 }
 
 // Index 获取所有实验
 func (a *actionExperiment) Index(c *gin.Context) {
 	var query form.FormSearchExperiment
 	if err := c.ShouldBindQuery(&query); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": PARAMETER_ERROR,
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
 			"text": err.Error(),
 		})
 		return
@@ -54,7 +78,7 @@ func (a *actionExperiment) Index(c *gin.Context) {
 	s := service.NewExperimentService()
 	data := s.Index(&query)
 	c.JSON(http.StatusOK, gin.H{
-		"code": SUCCESS,
+		"code": actionSuccess,
 		"data": data,
 	})
 	return

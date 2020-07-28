@@ -1,3 +1,5 @@
+package form
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,11 +21,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package form
+
+import "time"
 
 type FormSearchExperiment struct {
 	CurrentStatus uint `form:"status"`
 }
 
 type FormCreateExperiment struct {
+	Name      string    `form:"name" binding:"required"`
+	UniqKey   string    `form:"uniq_key" binding:"required"`
+	LayerID   uint      `form:"layer_id" binding:"required"`
+	LayerUsed uint      `form:"layer_used" binding:"required"`
+	BeginTime time.Time `form:"begin_time" binding:"required" time_format:"2006-01-02"`
+	EndTime   time.Time `form:"end_time" binding:"required" time_format:"2006-01-02"`
 }

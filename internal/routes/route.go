@@ -1,3 +1,5 @@
+package routes
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package routes
 
 import (
 	"github.com/gin-gonic/gin"
@@ -29,10 +30,12 @@ import (
 
 type route struct{}
 
+// NewRoute export route
 func NewRoute() *route {
 	return &route{}
 }
 
+// Register export gin.Engine
 func (r *route) Register() *gin.Engine {
 
 	e := api.NewActionExperiment()
@@ -40,7 +43,7 @@ func (r *route) Register() *gin.Engine {
 
 	gin.SetMode(viper.GetString("GIN_MODE"))
 	router := gin.Default()
-	v1 := router.Group("/api/v1")
+	v1 := router.Group("/api/v1/admin")
 	{
 		v1.GET("/experiment/index", e.Index)
 		v1.POST("/experiment/create", e.Create)

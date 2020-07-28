@@ -1,3 +1,5 @@
+package service
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,9 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package service
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/jinzhu/gorm"
 	"github.com/outman/abucket/internal/form"
 	"github.com/outman/abucket/internal/model"
 	"github.com/outman/abucket/internal/pkg"
@@ -29,7 +34,6 @@ import (
 
 type serviceExperiment struct{}
 
-// NewExperimentService 初始化一个 Sevice
 func NewExperimentService() *serviceExperiment {
 	return &serviceExperiment{}
 }
@@ -43,4 +47,62 @@ func (s *serviceExperiment) Index(f *form.FormSearchExperiment) []model.Experime
 		pkg.NewMySQL().DB.Order("end_time desc").Find(&experiments)
 	}
 	return experiments
+}
+
+func (s *serviceExperiment) Create(f *form.FormCreateExperiment) (int, model.Experiment) {
+
+	// check name uniq
+	var experiment model.Experiment
+	pkg.NewMySQL().DB.Where("name = ?", f.Name).First(&experiment)
+
+	if experiment.ID > 0 {
+		return ServiceOptionRecordNameDuplicate, experiment
+	}
+
+	// check experiment uniq key
+	pkg.NewMySQL().DB.Where("uniq_key = ?", f.UniqKey).First(&experiment)
+
+	if experiment.ID > 0 {
+		return ServiceOptionRecordKeyDuplicate, experiment
+	}
+
+	// check layer_id
+	var layer model.Layer
+	pkg.NewMySQL().DB.Where("id = ?", f.LayerID).First(&layer)
+	if layer.ID == 0 || layer.Left < f.LayerUsed {
+		return ServiceOptionLayerNoSpace, experiment
+	}
+
+	experiment = model.Experiment{
+		Name:      f.Name,
+		UniqKey:   f.UniqKey,
+		LayerID:   f.LayerID,
+		LayerUsed: f.LayerUsed,
+		BeginTime: f.BeginTime,
+		EndTime:   f.EndTime,
+		CreatedAt: time.Now(),
+	}
+
+	// Create experiment and reduce layer left
+	result := pkg.NewMySQL().DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&experiment).Error; err != nil {
+			return err
+		}
+
+		if (layer.Left - experiment.LayerUsed) < 0 {
+			return fmt.Errorf("Layer left %d, need %d", layer.Left, experiment.LayerUsed)
+		}
+
+		layer.Left = layer.Left - experiment.LayerUsed
+		layer.UpdatedAt = time.Now()
+		if err := tx.Save(&layer).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if result != nil {
+		return ServiceOptionDbError, experiment
+	}
+	return ServiceOptionSuccess, experiment
 }

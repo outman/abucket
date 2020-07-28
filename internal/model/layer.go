@@ -1,3 +1,5 @@
+package model
+
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -19,14 +21,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package model
 
 import "time"
 
 // Layer struct
 type Layer struct {
 	ID        uint      `gorm:"Column:id;PRIMARY_KEY"`
-	Name      string    `gorm:"Column:name;NOT NULL;UNIQUE_INDEX:uniq_name;Size:200"`
+	Name      string    `gorm:"Column:name;NOT NULL;UNIQUE_INDEX:uniq_name;Size:150"`
 	Left      uint      `gorm:"Column:left;NOT NULL;DEFAULT:0"`
 	CreatedAt time.Time `gorm:"Column:created_at"`
 	UpdatedAt time.Time `gorm:"Column:updated_at"`
