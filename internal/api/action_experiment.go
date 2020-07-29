@@ -34,10 +34,13 @@ import (
 type actionExperiment struct {
 }
 
+// NewActionExperiment return experiment action for route
 func NewActionExperiment() *actionExperiment {
 	return &actionExperiment{}
 }
 
+// Create experiment
+// binding form.FormCreateExperiment
 func (a *actionExperiment) Create(c *gin.Context) {
 	var formParams form.FormCreateExperiment
 	if err := c.ShouldBind(&formParams); err != nil {
@@ -65,7 +68,8 @@ func (a *actionExperiment) Create(c *gin.Context) {
 	return
 }
 
-// Index 获取所有实验
+// Index all experiments
+// binding form.FormSearchExperiment
 func (a *actionExperiment) Index(c *gin.Context) {
 	var query form.FormSearchExperiment
 	if err := c.ShouldBindQuery(&query); err != nil {
