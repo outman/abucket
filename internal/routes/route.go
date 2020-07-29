@@ -50,7 +50,6 @@ func (r *route) Register() *gin.Engine {
 		v1.POST("/experiment/update", e.Update)
 		v1.POST("/experiment/delete", e.Delete)
 		v1.POST("/experiment/group/create", e.CreateGroup)
-		v1.POST("/experiment/group/update", e.UpdateGroup)
 		v1.GET("/layer/index", l.Index)
 		v1.POST("/layer/update", l.Update)
 		v1.POST("/layer/create", l.Create)

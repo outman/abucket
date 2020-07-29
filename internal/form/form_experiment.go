@@ -36,3 +36,25 @@ type FormCreateExperiment struct {
 	BeginTime time.Time `form:"begin_time" binding:"required" time_format:"2006-01-02"`
 	EndTime   time.Time `form:"end_time" binding:"required" time_format:"2006-01-02"`
 }
+
+type FormUpdateExperiment struct {
+	ID            uint      `form:"id" binding:"required"`
+	CurrentStatus uint      `form:"status" binding:"required"`
+	BeginTime     time.Time `form:"begin_time" binding:"required" time_format:"2006-01-02"`
+	EndTime       time.Time `form:"end_time" binding:"required" time_format:"2006-01-02"`
+}
+
+type FormDeleteExperiment struct {
+	ID            uint `form:"id" binding:"required"`
+	CurrentStatus uint `form:"status" binding:"required"`
+}
+
+type Group struct {
+	Name    string `json:"name" binding:"required"`
+	Percent *uint  `json:"percent" binding:"required"`
+}
+
+type FormExperimentGroups struct {
+	ID     uint    `json:"id" binding:"required"`
+	Groups []Group `json:"groups" binding:"required"`
+}

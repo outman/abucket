@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -38,7 +39,8 @@ func NewExperimentService() *serviceExperiment {
 	return &serviceExperiment{}
 }
 
-// Index 根据条件获取数据
+// Index
+// search with status and order by end_time desc
 func (s *serviceExperiment) Index(f *form.FormSearchExperiment) []model.Experiment {
 	var experiments []model.Experiment
 	if f.CurrentStatus > 0 {
@@ -49,6 +51,7 @@ func (s *serviceExperiment) Index(f *form.FormSearchExperiment) []model.Experime
 	return experiments
 }
 
+// Create new experiment record.
 func (s *serviceExperiment) Create(f *form.FormCreateExperiment) (int, model.Experiment) {
 
 	// check name uniq
@@ -103,6 +106,68 @@ func (s *serviceExperiment) Create(f *form.FormCreateExperiment) (int, model.Exp
 
 	if result != nil {
 		return ServiceOptionDbError, experiment
+	}
+	return ServiceOptionSuccess, experiment
+}
+
+// Update status begin_time and end_time
+func (s *serviceExperiment) Update(f *form.FormUpdateExperiment) (int, model.Experiment) {
+	var experiment model.Experiment
+	pkg.NewMySQL().DB.Where("id = ?", f.ID).First(&experiment)
+
+	if experiment.ID == 0 {
+		return ServiceOptionRecordNotFound, experiment
+	}
+
+	experiment.BeginTime = f.BeginTime
+	experiment.EndTime = f.EndTime
+	experiment.CurrentStatus = f.CurrentStatus
+	experiment.UpdatedAt = time.Now()
+
+	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		return ServiceOptionSQLError, experiment
+	}
+
+	return ServiceOptionSuccess, experiment
+}
+
+// Delete
+// set status = delete and update_at = time.Now()
+func (s *serviceExperiment) Delete(f *form.FormDeleteExperiment) (int, model.Experiment) {
+	var experiment model.Experiment
+	pkg.NewMySQL().DB.Where("id = ?", f.ID).First(&experiment)
+
+	if experiment.ID == 0 {
+		return ServiceOptionRecordNotFound, experiment
+	}
+
+	experiment.CurrentStatus = f.CurrentStatus
+	experiment.UpdatedAt = time.Now()
+
+	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		return ServiceOptionSQLError, experiment
+	}
+
+	return ServiceOptionSuccess, experiment
+}
+
+func (s *serviceExperiment) UpdateGroup(f *form.FormExperimentGroups) (int, model.Experiment) {
+	var experiment model.Experiment
+	pkg.NewMySQL().DB.Where("id = ?", f.ID).First(&experiment)
+	if experiment.ID == 0 {
+		return ServiceOptionRecordNotFound, experiment
+	}
+
+	data, err := json.Marshal(f)
+	if err != nil {
+		return ServiceOptionParameterError, experiment
+	}
+
+	experiment.Groups = string(data)
+	experiment.UpdatedAt = time.Now()
+
+	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		return ServiceOptionSQLError, experiment
 	}
 	return ServiceOptionSuccess, experiment
 }

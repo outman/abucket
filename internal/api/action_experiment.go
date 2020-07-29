@@ -88,18 +88,100 @@ func (a *actionExperiment) Index(c *gin.Context) {
 	return
 }
 
+// Update
+// Update experiment status, begin_time and end_time
 func (a *actionExperiment) Update(c *gin.Context) {
+	var formParams form.FormUpdateExperiment
+	if err := c.ShouldBind(&formParams); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
+			"text": err.Error(),
+		})
+		return
+	}
+	s := service.NewExperimentService()
+	code, data := s.Update(&formParams)
+	if code != service.ServiceOptionSuccess {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionServerError,
+			"text": service.CodeMessage(code),
+		})
+		return
+	}
 
+	c.JSON(http.StatusOK, gin.H{
+		"code": actionSuccess,
+		"data": data,
+	})
+	return
 }
 
 func (a *actionExperiment) Delete(c *gin.Context) {
+	var formParams form.FormDeleteExperiment
+	if err := c.ShouldBind(&formParams); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
+			"text": err.Error(),
+		})
+		return
+	}
 
+	s := service.NewExperimentService()
+	code, data := s.Delete(&formParams)
+	if code != service.ServiceOptionSuccess {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionServerError,
+			"text": service.CodeMessage(code),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": actionSuccess,
+		"data": data,
+	})
+	return
 }
 
 func (a *actionExperiment) CreateGroup(c *gin.Context) {
+	var group form.FormExperimentGroups
+	if err := c.ShouldBindJSON(&group); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
+			"text": err.Error(),
+		})
+		return
+	}
 
-}
+	var total uint
+	names := make(map[string]uint)
+	for _, v := range group.Groups {
+		total += *v.Percent
+		names[v.Name] = *v.Percent
+	}
 
-func (a *actionExperiment) UpdateGroup(c *gin.Context) {
+	if total > 100 || len(group.Groups) == 0 || len(names) < len(group.Groups) {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionParameterError,
+			"text": service.CodeMessage(service.ServiceOptionGroupError),
+		})
+		return
+	}
 
+	s := service.NewExperimentService()
+	code, data := s.UpdateGroup(&group)
+
+	if code != service.ServiceOptionSuccess {
+		c.JSON(http.StatusOK, gin.H{
+			"code": actionServerError,
+			"text": service.CodeMessage(code),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": actionSuccess,
+		"data": data,
+	})
+	return
 }
