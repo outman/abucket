@@ -43,15 +43,21 @@ func (r *route) Register() *gin.Engine {
 
 	gin.SetMode(viper.GetString("GIN_MODE"))
 	router := gin.Default()
-	v1 := router.Group("/api/v1/admin")
+	admin := router.Group("/api/v1/admin")
 	{
-		v1.GET("/experiment/index", e.Index)
-		v1.POST("/experiment/create", e.Create)
-		v1.POST("/experiment/update", e.Update)
-		v1.POST("/experiment/delete", e.Delete)
-		v1.POST("/experiment/group/create", e.CreateGroup)
-		v1.GET("/layer/index", l.Index)
-		v1.POST("/layer/create", l.Create)
+		admin.GET("/experiment/index", e.Index)
+		admin.POST("/experiment/create", e.Create)
+		admin.POST("/experiment/update", e.Update)
+		admin.POST("/experiment/delete", e.Delete)
+		admin.POST("/experiment/group/create", e.CreateGroup)
+		admin.GET("/layer/index", l.Index)
+		admin.POST("/layer/create", l.Create)
+	}
+
+	g := api.NewActionGroup()
+	group := router.Group("/api/v1/group")
+	{
+		group.GET("/get", g.Group)
 	}
 	return router
 }

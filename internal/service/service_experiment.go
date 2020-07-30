@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/minio/highwayhash"
 	"github.com/outman/abucket/internal/form"
 	"github.com/outman/abucket/internal/model"
 	"github.com/outman/abucket/internal/pkg"
@@ -170,4 +171,79 @@ func (s *serviceExperiment) UpdateGroup(f *form.FormExperimentGroups) (int, mode
 		return ServiceOptionSQLError, experiment
 	}
 	return ServiceOptionSuccess, experiment
+}
+
+func (s *serviceExperiment) HitGroup(f *form.RequestFormGroup) (int, string, uint) {
+	var experiment model.Experiment
+	if err := pkg.NewMySQL().DB.Where("uniq_key = ?", f.UniqKey).First(&experiment).Error; err != nil {
+		return ServiceOptionRecordNotFound, "", 0
+	}
+
+	// Experiment not working
+	if experiment.CurrentStatus != model.StWorking {
+		return ServiceOptionSuccess, "", 0
+	}
+
+	// Experiment out of date range
+	current := time.Now()
+	if current.Before(experiment.BeginTime) || current.After(experiment.EndTime) {
+		return ServiceOptionSuccess, "", 0
+	}
+	uuid := []byte(f.UUID)
+	// Experiment layer 100 percent layer
+	if experiment.LayerUsed == 100 {
+		return selectBucket(uuid, experiment)
+	}
+
+	// Experiment layer less than 100
+	// process layer hits
+	var experiments []model.Experiment
+	if err := pkg.NewMySQL().DB.Order("id asc").Where("layer_id = ?", experiment.LayerID).Find(&experiments).Error; err != nil {
+		return ServiceOptionSQLError, "", 0
+	}
+
+	hitLayer, bucket := selectLayer(uuid, experiment, experiments)
+	if !hitLayer {
+		return ServiceOptionSuccess, "", bucket
+	}
+	return selectBucket(uuid, experiment)
+}
+
+func selectLayer(data []byte, e model.Experiment, es []model.Experiment) (bool, uint) {
+	key := []byte("14a1c4b4595739b653ffe832bcd50928")
+	num := highwayhash.Sum64(data, key)
+	bucket := uint(num%100 + 1)
+	var total uint
+	for _, v := range es {
+		total += v.LayerUsed
+		if bucket <= total {
+			if v.UniqKey == e.UniqKey {
+				return true, bucket
+			}
+			return false, bucket
+		}
+	}
+	return false, bucket
+}
+
+func selectBucket(data []byte, e model.Experiment) (int, string, uint) {
+	var f form.FormExperimentGroups
+	err := json.Unmarshal([]byte(e.Groups), &f)
+	if err != nil {
+		fmt.Println(err)
+		return ServiceOptionGroupError, "", 0
+	}
+
+	key := []byte("cff46a76d99c63c8a405eb539b781cab")
+	num := highwayhash.Sum64(data, key)
+	bucket := uint(num%100 + 1)
+
+	var total uint
+	for _, v := range f.Groups {
+		total += *v.Percent
+		if bucket <= total {
+			return ServiceOptionSuccess, v.Name, bucket
+		}
+	}
+	return ServiceOptionSuccess, "", bucket
 }
