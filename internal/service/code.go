@@ -12,6 +12,7 @@ const (
 	ServiceOptionRecordNotFound
 	ServiceOptionParameterError
 	ServiceOptionGroupError
+	ServiceOptionGroupJSONError
 )
 
 // CodeMessage display message text
@@ -27,5 +28,6 @@ func CodeMessage(code int) string {
 	message[ServiceOptionRecordNotFound] = "记录不存在或已删除"
 	message[ServiceOptionParameterError] = "请求参数错误，请检查"
 	message[ServiceOptionGroupError] = "请检查输入的分组数据，流量不得 > 100 且组名不能重复"
+	message[ServiceOptionGroupJSONError] = "分组数据错误"
 	return message[code]
 }

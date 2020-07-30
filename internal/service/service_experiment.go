@@ -230,8 +230,7 @@ func selectBucket(data []byte, e model.Experiment) (int, string, uint) {
 	var f form.FormExperimentGroups
 	err := json.Unmarshal([]byte(e.Groups), &f)
 	if err != nil {
-		fmt.Println(err)
-		return ServiceOptionGroupError, "", 0
+		return ServiceOptionGroupJSONError, "", 0
 	}
 
 	key := []byte("cff46a76d99c63c8a405eb539b781cab")
