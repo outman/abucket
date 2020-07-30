@@ -23,5 +23,5 @@ THE SOFTWARE.
 */
 
 type FormCreateLayer struct {
-	Name string `form:"name" binding:"required"`
+	Name string `form:"name" binding:"required,min=1,max=150"`
 }

@@ -28,6 +28,12 @@ import (
 	"github.com/outman/abucket/internal/pkg"
 )
 
+const (
+	StNormal = iota
+	StWorking
+	StStop
+)
+
 // Experiment struct
 type Experiment struct {
 	ID            uint      `gorm:"Column:id;PRIMARY_KEY"`

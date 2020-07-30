@@ -29,29 +29,29 @@ type FormSearchExperiment struct {
 }
 
 type FormCreateExperiment struct {
-	Name      string    `form:"name" binding:"required"`
-	UniqKey   string    `form:"uniq_key" binding:"required"`
+	Name      string    `form:"name" binding:"required,min=1,max=150"`
+	UniqKey   string    `form:"uniq_key" binding:"required,min=1,max=40"`
 	LayerID   uint      `form:"layer_id" binding:"required"`
-	LayerUsed uint      `form:"layer_used" binding:"required"`
+	LayerUsed uint      `form:"layer_used" binding:"required,min=1,max=100"`
 	BeginTime time.Time `form:"begin_time" binding:"required" time_format:"2006-01-02"`
 	EndTime   time.Time `form:"end_time" binding:"required" time_format:"2006-01-02"`
 }
 
 type FormUpdateExperiment struct {
 	ID            uint      `form:"id" binding:"required"`
-	CurrentStatus uint      `form:"status" binding:"required"`
+	CurrentStatus uint      `form:"status" binding:"required,oneof=1 2"`
 	BeginTime     time.Time `form:"begin_time" binding:"required" time_format:"2006-01-02"`
 	EndTime       time.Time `form:"end_time" binding:"required" time_format:"2006-01-02"`
 }
 
 type FormDeleteExperiment struct {
 	ID            uint `form:"id" binding:"required"`
-	CurrentStatus uint `form:"status" binding:"required"`
+	CurrentStatus uint `form:"status" binding:"required,eq=2"`
 }
 
 type Group struct {
-	Name    string `json:"name" binding:"required"`
-	Percent *uint  `json:"percent" binding:"required"`
+	Name    string `json:"name" binding:"required,min=1,max=150"`
+	Percent *uint  `json:"percent" binding:"required,min=0,max=100"`
 }
 
 type FormExperimentGroups struct {

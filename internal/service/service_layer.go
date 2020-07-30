@@ -1,10 +1,5 @@
 package service
 
-import (
-	"github.com/outman/abucket/internal/form"
-	"github.com/outman/abucket/internal/model"
-)
-
 /*
 Copyright © 2020 pochonlee@gmail.com
 
@@ -26,12 +21,44 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
+import (
+	"time"
+
+	"github.com/outman/abucket/internal/form"
+	"github.com/outman/abucket/internal/model"
+	"github.com/outman/abucket/internal/pkg"
+)
+
 type serviceLayer struct{}
 
 func NewLayerService() *serviceLayer {
 	return &serviceLayer{}
 }
 
-func (s *serviceLayer) Create(f *form.FormCreateLayer) model.Layer {
+func (s *serviceLayer) Create(f *form.FormCreateLayer) (int, model.Layer) {
+	var layer model.Layer
+	pkg.NewMySQL().DB.Where("name = ?", f.Name).First(&layer)
 
+	if layer.ID > 0 {
+		return ServiceOptionRecordExists, layer
+	}
+
+	layer = model.Layer{
+		Name:      f.Name,
+		Left:      100,
+		CreatedAt: time.Now(),
+	}
+
+	if err := pkg.NewMySQL().DB.Create(&layer).Error; err != nil {
+		return ServiceOptionDbError, layer
+	}
+
+	return ServiceOptionSuccess, layer
+}
+
+func (s *serviceLayer) Index() []model.Layer {
+	var layers []model.Layer
+	pkg.NewMySQL().DB.Order("id asc").Where("`left` > ?", 0).Find(&layers)
+	return layers
 }
