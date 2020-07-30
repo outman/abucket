@@ -25,6 +25,7 @@ THE SOFTWARE.
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -33,6 +34,17 @@ import (
 	"github.com/outman/abucket/internal/model"
 	"github.com/outman/abucket/internal/pkg"
 )
+
+const (
+	evtExpCreate = iota
+	evtExpUpdate
+	evtExpUpGroup
+	evtExpDelete
+)
+
+// Cache with memory
+var cacheExperiment sync.Map
+var cacheLayer sync.Map
 
 type serviceExperiment struct{}
 
@@ -108,6 +120,7 @@ func (s *serviceExperiment) Create(f *form.FormCreateExperiment) (int, model.Exp
 	if result != nil {
 		return ServiceOptionDbError, experiment
 	}
+	event(evtExpCreate, experiment)
 	return ServiceOptionSuccess, experiment
 }
 
@@ -128,7 +141,7 @@ func (s *serviceExperiment) Update(f *form.FormUpdateExperiment) (int, model.Exp
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
 		return ServiceOptionSQLError, experiment
 	}
-
+	event(evtExpUpdate, experiment)
 	return ServiceOptionSuccess, experiment
 }
 
@@ -148,7 +161,7 @@ func (s *serviceExperiment) Delete(f *form.FormDeleteExperiment) (int, model.Exp
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
 		return ServiceOptionSQLError, experiment
 	}
-
+	event(evtExpDelete, experiment)
 	return ServiceOptionSuccess, experiment
 }
 
@@ -170,13 +183,21 @@ func (s *serviceExperiment) UpdateGroup(f *form.FormExperimentGroups) (int, mode
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
 		return ServiceOptionSQLError, experiment
 	}
+	event(evtExpUpGroup, experiment)
 	return ServiceOptionSuccess, experiment
 }
 
 func (s *serviceExperiment) HitGroup(f *form.RequestFormGroup) (int, string, uint) {
+
 	var experiment model.Experiment
-	if err := pkg.NewMySQL().DB.Where("uniq_key = ?", f.UniqKey).First(&experiment).Error; err != nil {
-		return ServiceOptionRecordNotFound, "", 0
+	v, ok := cacheExperiment.Load(f.UniqKey)
+	if ok {
+		experiment = v.(model.Experiment)
+	} else {
+		if err := pkg.NewMySQL().DB.Where("uniq_key = ?", f.UniqKey).First(&experiment).Error; err != nil {
+			return ServiceOptionRecordNotFound, "", 0
+		}
+		cacheExperiment.Store(f.UniqKey, experiment)
 	}
 
 	// Experiment not working
@@ -198,8 +219,14 @@ func (s *serviceExperiment) HitGroup(f *form.RequestFormGroup) (int, string, uin
 	// Experiment layer less than 100
 	// process layer hits
 	var experiments []model.Experiment
-	if err := pkg.NewMySQL().DB.Order("id asc").Where("layer_id = ?", experiment.LayerID).Find(&experiments).Error; err != nil {
-		return ServiceOptionSQLError, "", 0
+	a, ok := cacheLayer.Load(experiment.LayerID)
+	if ok {
+		experiments = a.([]model.Experiment)
+	} else {
+		if err := pkg.NewMySQL().DB.Order("id asc").Where("layer_id = ?", experiment.LayerID).Find(&experiments).Error; err != nil {
+			return ServiceOptionSQLError, "", 0
+		}
+		cacheLayer.Store(experiment.LayerID, experiments)
 	}
 
 	hitLayer, bucket := selectLayer(uuid, experiment, experiments)
@@ -245,4 +272,18 @@ func selectBucket(data []byte, e model.Experiment) (int, string, uint) {
 		}
 	}
 	return ServiceOptionSuccess, "", bucket
+}
+
+func event(t uint, e model.Experiment) {
+	switch t {
+	case evtExpCreate:
+		cacheExperiment.Store(e.UniqKey, e)
+		cacheLayer.Delete(e.LayerID)
+	case evtExpUpdate:
+		cacheExperiment.Store(e.UniqKey, e)
+	case evtExpUpGroup:
+		cacheExperiment.Store(e.UniqKey, e)
+	case evtExpDelete:
+		cacheExperiment.Store(e.UniqKey, e)
+	}
 }
