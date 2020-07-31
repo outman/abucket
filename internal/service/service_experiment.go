@@ -113,6 +113,7 @@ func (s *serviceExperiment) Create(f *form.FormCreateExperiment) (int, model.Exp
 	})
 
 	if result != nil {
+		pkg.NewZapLogger().Error(result.Error())
 		return ServiceOptionDbError, experiment
 	}
 
@@ -134,6 +135,7 @@ func (s *serviceExperiment) Update(f *form.FormUpdateExperiment) (int, model.Exp
 	experiment.UpdatedAt = time.Now()
 
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionSQLError, experiment
 	}
 
@@ -154,6 +156,7 @@ func (s *serviceExperiment) Delete(f *form.FormDeleteExperiment) (int, model.Exp
 	experiment.UpdatedAt = time.Now()
 
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionSQLError, experiment
 	}
 
@@ -169,6 +172,7 @@ func (s *serviceExperiment) UpdateGroup(f *form.FormExperimentGroups) (int, mode
 
 	data, err := json.Marshal(f)
 	if err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionParameterError, experiment
 	}
 
@@ -176,6 +180,7 @@ func (s *serviceExperiment) UpdateGroup(f *form.FormExperimentGroups) (int, mode
 	experiment.UpdatedAt = time.Now()
 
 	if err := pkg.NewMySQL().DB.Save(&experiment).Error; err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionSQLError, experiment
 	}
 
@@ -219,6 +224,7 @@ func (s *serviceExperiment) HitGroup(f *form.RequestFormGroup) (int, string, uin
 		experiments = a.([]model.Experiment)
 	} else {
 		if err := pkg.NewMySQL().DB.Order("id asc").Where("layer_id = ?", experiment.LayerID).Find(&experiments).Error; err != nil {
+			pkg.NewZapLogger().Error(err.Error())
 			return ServiceOptionSQLError, "", 0
 		}
 		cacheLayer.Set(experiment.LayerID, experiments)
@@ -252,6 +258,7 @@ func selectBucket(data []byte, e model.Experiment) (int, string, uint) {
 	var f form.FormExperimentGroups
 	err := json.Unmarshal([]byte(e.Groups), &f)
 	if err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionGroupJSONError, "", 0
 	}
 

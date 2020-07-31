@@ -23,8 +23,13 @@ THE SOFTWARE.
 */
 
 import (
+	"time"
+
+	"github.com/gin-contrib/cors"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/outman/abucket/internal/api"
+	"github.com/outman/abucket/internal/pkg"
 	"github.com/spf13/viper"
 )
 
@@ -38,11 +43,29 @@ func NewRoute() *route {
 // Register export gin.Engine
 func (r *route) Register() *gin.Engine {
 
+	gin.DisableConsoleColor()
+	gin.SetMode(viper.GetString("GIN_MODE"))
+	router := gin.New()
+
+	// zap logger init
+	logger := pkg.NewZapLogger()
+	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+	router.Use(ginzap.RecoveryWithZap(logger, true))
+
+	// cors
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     viper.GetStringSlice("CORS_ALLOW_ORIGINS"),
+		AllowMethods:     []string{"PUT", "PATCH"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	// route
 	e := api.NewActionExperiment()
 	l := api.NewActionLayer()
 
-	gin.SetMode(viper.GetString("GIN_MODE"))
-	router := gin.Default()
 	admin := router.Group("/api/v1/admin")
 	{
 		admin.GET("/experiment/index", e.Index)

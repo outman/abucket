@@ -23,9 +23,11 @@ THE SOFTWARE.
 */
 
 import (
-	_ "github.com/go-sql-driver/mysql"
+	"sync"
 
-	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
+
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -33,33 +35,40 @@ import (
 )
 
 type mySQL struct {
-	DB     *gorm.DB
-	IsOpen bool
+	DB *gorm.DB
 }
 
-var mySQLdb *mySQL
+var (
+	mySQLdb   *mySQL
+	onceMySQL sync.Once
+)
 
 // NewMySQL init mySQL
 func NewMySQL() *mySQL {
 
-	if mySQLdb != nil && mySQLdb.IsOpen {
-		return mySQLdb
-	}
+	onceMySQL.Do(func() {
+		driver, conn := viper.GetString("DB_DRIVER"), viper.GetString("DB_CONNECTION")
+		if driver == "" || conn == "" {
+			NewZapLogger().DPanic("DB_DIRVER/DB_CONNECTION must not empty.",
+				zap.String("DB_DRIVER", driver),
+				zap.String("DB_CONNECTION", driver))
+		}
 
-	database, err := gorm.Open(viper.GetString("DB_DRIVER"), viper.GetString("DB_CONNECTION"))
-	if err != nil {
-		panic(fmt.Sprintf("MySQL open connection %s error %s.", viper.GetString("DB_CONNECTION"), err))
-	}
+		database, err := gorm.Open(driver, conn)
+		if err != nil {
+			NewZapLogger().DPanic(err.Error(),
+				zap.String("conn", conn))
+		}
 
-	database.LogMode(true)
-	database.Set("gorm:table_options", "ENGINE=InnoDB")
-	database.DB().SetMaxIdleConns(viper.GetInt("MYSQL_MAX_IDLE"))
-	database.DB().SetMaxOpenConns(viper.GetInt("MYSQL_MAX_OPEN_CONNS"))
-	database.DB().SetConnMaxLifetime(time.Hour)
+		database.LogMode(viper.GetBool("MYSQL_LOG_MODE"))
+		database.Set("gorm:table_options", "ENGINE=InnoDB")
+		database.DB().SetMaxIdleConns(viper.GetInt("MYSQL_MAX_IDLE"))
+		database.DB().SetMaxOpenConns(viper.GetInt("MYSQL_MAX_OPEN_CONNS"))
+		database.DB().SetConnMaxLifetime(time.Hour)
 
-	mySQLdb = &mySQL{
-		DB:     database,
-		IsOpen: true,
-	}
+		mySQLdb = &mySQL{
+			DB: database,
+		}
+	})
 	return mySQLdb
 }

@@ -32,6 +32,7 @@ import (
 
 type serviceLayer struct{}
 
+// NewLayerService *serviceLayer
 func NewLayerService() *serviceLayer {
 	return &serviceLayer{}
 }
@@ -51,6 +52,7 @@ func (s *serviceLayer) Create(f *form.FormCreateLayer) (int, model.Layer) {
 	}
 
 	if err := pkg.NewMySQL().DB.Create(&layer).Error; err != nil {
+		pkg.NewZapLogger().Error(err.Error())
 		return ServiceOptionDbError, layer
 	}
 
