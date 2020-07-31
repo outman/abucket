@@ -10,31 +10,43 @@ type cacheItem struct {
 	expiration int64
 }
 
-type CacheStore struct {
-	Item     sync.Map
-	Duration int64
+type cacheStore struct {
+	item     *sync.Map
+	duration int64
 }
 
-func (c *CacheStore) Get(k interface{}) (interface{}, bool) {
-	v, ok := c.Item.Load(k)
+// NewCacheStore (storage *sync.Map, duration int64)
+// type cacheStore struct {
+// 	Item     *sync.Map
+// 	Duration int64
+// }
+func NewCacheStore(storage *sync.Map, duration int64) *cacheStore {
+	return &cacheStore{
+		item:     storage,
+		duration: duration,
+	}
+}
+
+func (c *cacheStore) Get(k interface{}) (interface{}, bool) {
+	v, ok := c.item.Load(k)
 	if ok {
 		i := v.(cacheItem)
 		if i.expiration == 0 || i.expiration > time.Now().Unix() {
 			return i.object, ok
 		}
 	}
-	c.Item.Delete(k)
+	c.item.Delete(k)
 	return nil, false
 }
 
-func (c *CacheStore) Set(k interface{}, v interface{}) {
+func (c *cacheStore) Set(k interface{}, v interface{}) {
 	item := cacheItem{
 		object:     v,
-		expiration: c.Duration + time.Now().Unix(),
+		expiration: c.duration + time.Now().Unix(),
 	}
-	c.Item.Store(k, item)
+	c.item.Store(k, item)
 }
 
-func (c *CacheStore) Delete(k interface{}) {
-	c.Item.Delete(k)
+func (c *cacheStore) Delete(k interface{}) {
+	c.item.Delete(k)
 }

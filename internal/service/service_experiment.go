@@ -36,15 +36,10 @@ import (
 )
 
 // Cache with memory
-var cacheExperiment = &pkg.CacheStore{
-	Item:     sync.Map{},
-	Duration: 600,
-}
-
-var cacheLayer = &pkg.CacheStore{
-	Item:     sync.Map{},
-	Duration: 600,
-}
+var (
+	cacheExperiment = pkg.NewCacheStore(&sync.Map{}, 600)
+	cacheLayer      = pkg.NewCacheStore(&sync.Map{}, 600)
+)
 
 type serviceExperiment struct{}
 
