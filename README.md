@@ -63,6 +63,7 @@ Available Commands:
   automigrate Auto migrate database tables.
   help        Help about any command
   server      Run application.
+  token       Make access token with .abucket.yaml's ADMIN node.
   version     Display version.
 
 Flags:
