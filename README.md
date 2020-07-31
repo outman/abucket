@@ -1,10 +1,18 @@
-### AB Testing bucket.
+## AB Testing bucket.
 
-#### WIP
+### Install
 
-### .abucket.yaml
+#### Go
 
 ```
+go get -u github.com/outman/abucket
+```
+
+#### Config
+
+.abucket.yaml
+
+```yaml
 GIN_MODE: release
 SERVER_LISTEN: ":8989"
 
@@ -19,4 +27,39 @@ LOG_PATH: "/tmp/abucket.log"
 CORS_ALLOW_ORIGINS:
     - "http://localhost"
 
+```
+
+#### Database table
+
+```
+./abucket automigrate  // create tables.
+```
+
+#### Run
+
+```
+./abucket server
+```
+
+### Usage
+```
+./abucket
+
+A simple AB Tesing traffic bucket system.
+
+Usage:
+  abucket [command]
+
+Available Commands:
+  automigrate Auto migrate database tables.
+  help        Help about any command
+  server      Run application.
+  version     Display version.
+
+Flags:
+      --config string   config file (default is $HOME/.abucket.yaml)
+  -h, --help            help for abucket
+  -t, --toggle          Help message for toggle
+
+Use "abucket [command] --help" for more information about a command.
 ```
