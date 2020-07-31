@@ -22,14 +22,23 @@ MYSQL_MAX_IDLE: 10
 MYSQL_MAX_OPEN_CONNS: 100
 MYSQL_LOG_MODE: false
 
+CRYPT_KEY: e2e11d1b6d1ac295ffec01a4b1938fcb
 LOG_PATH: "/tmp/abucket.log"
 
 CORS_ALLOW_ORIGINS:
     - "http://localhost"
 
+ADMIN:
+  admin: testpassword
+
+
 ```
 
 #### Database table
+
+```sql
+create database abucket default charset utf8mb4;
+```
 
 ```
 ./abucket automigrate  // create tables.

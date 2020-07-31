@@ -3,6 +3,7 @@ module github.com/outman/abucket
 go 1.14
 
 require (
+	github.com/forgoer/openssl v0.0.0-20200331032942-ad9f8d57d8b1
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/zap v0.0.1
 	github.com/gin-gonic/gin v1.6.3

@@ -29,6 +29,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/outman/abucket/internal/api"
+	"github.com/outman/abucket/internal/middleware"
 	"github.com/outman/abucket/internal/pkg"
 	"github.com/spf13/viper"
 )
@@ -65,9 +66,13 @@ func (r *route) Register() *gin.Engine {
 	// route
 	e := api.NewActionExperiment()
 	l := api.NewActionLayer()
+	a := api.NewActionLogin()
+
+	router.POST("/api/v1/login", a.Login)
 
 	admin := router.Group("/api/v1/admin")
 	{
+		admin.Use(middleware.Auth())
 		admin.GET("/experiment/index", e.Index)
 		admin.POST("/experiment/create", e.Create)
 		admin.POST("/experiment/update", e.Update)
